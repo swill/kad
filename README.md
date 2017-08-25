@@ -15,7 +15,9 @@ $ go get github.com/swill/kad
 ```
 
 
-## Example Usage
+## Example
+
+### Usage
 
 ``` go
 package main
@@ -59,13 +61,13 @@ func main() {
 		log.Fatalf("Failed to parse json data into the KAD file\nError: %s", err.Error())
 	}
 
-	// And you can define settings via the KAD instance
+	// and you can define settings via the KAD instance
 	cad.Hash = "usage_example"      // the name of the design
 	cad.FileStore = kad.STORE_LOCAL // store the files locally
 	cad.FileDirectory = "./"        // the path location where the files will be saved
 	cad.FileServePath = "/"         // the url path for the 'results' (don't worry about this)
 
-	// Here are some more settings defined for this case
+	// here are some more settings defined for this case
 	cad.Case.UsbWidth = 12 // all dimension are in 'mm'
 	cad.Fillet = 3         // 3mm radius on the rounded corners of the case
 
@@ -76,6 +78,22 @@ func main() {
 	}
 }
 ```
+*For more usage examples, check the `./test/` folder.*
+
+
+### Output
+
+| Top Layer | Switch Layer |
+|:---------:|:------------:|
+| ![Top Layer](https://swill.github.io/kad/usage/usage_example_top.svg) | ![Switch Layer](https://swill.github.io/kad/usage/usage_example_switch.svg) |
+
+| Closed Layer | Open Layer |
+|:------------:|:----------:|
+| ![Closed Layer](https://swill.github.io/kad/usage/usage_example_closed.svg) | ![Open Layer](https://swill.github.io/kad/usage/usage_example_open.svg) |
+
+| Bottom Layer |
+|:------------:|
+| ![Bottom Layer](https://swill.github.io/kad/usage/usage_example_bottom.svg) |
 
 
 ## License
