@@ -429,7 +429,6 @@ func (k *KAD) DrawOutputFiles() error {
 			log.Printf("ERROR Creating export file: %s, %s | %s", k.Hash, layer, err.Error())
 			return err
 		}
-		//defer file.Close()
 
 		k.Svgs[layer] = SvgWrapper{File: file, Svg: svg.New(file)}
 		canvas := k.Svgs[layer].Svg
