@@ -131,14 +131,14 @@ func (key *Key) Draw(k *KAD, c Point, ctx Key, init bool) {
 	// determine the bounds of the keycap
 	var bound_path Path
 	b := c // bounds center point
-	x_point := k.U1 * key.Width / 2
-	y_point := k.U1 * key.Height / 2
+	x_point := k.U1Width() * key.Width / 2
+	y_point := k.U1Height() * key.Height / 2
 	if key.AltWidth > key.Width {
-		x_point = k.U1 * key.AltWidth / 2
-		b = Point{b.X + k.U1*(key.AltWidth-key.Width)/2, b.Y}
+		x_point = k.U1Width() * key.AltWidth / 2
+		b = Point{b.X + k.U1Width()*(key.AltWidth-key.Width)/2, b.Y}
 	}
 	if key.AltHeight > key.Height {
-		y_point = k.U1 * key.AltHeight / 2
+		y_point = k.U1Height() * key.AltHeight / 2
 	}
 	bound_path = Path{
 		{x_point + OVERLAP, -y_point - OVERLAP},
@@ -148,14 +148,14 @@ func (key *Key) Draw(k *KAD, c Point, ctx Key, init bool) {
 	}
 	// adapt the bounds to account for alternate offsets
 	if key.Xalt != 0 {
-		b = Point{b.X + k.U1*key.Xalt, b.Y}
+		b = Point{b.X + k.U1Width()*key.Xalt, b.Y}
 	}
 	bound_path.Rel(b) // make the path relative to key center
 	if key.Rotate != 0 {
 		bound_path.RotatePath(key.Rotate, b)
 	}
 	if ctx.RotateCluster != 0 {
-		bound_path.RotatePath(ctx.RotateCluster, Point{ctx.Xabs*k.U1 + k.DMZ + k.LeftPad, ctx.Yabs*k.U1 + k.DMZ + k.TopPad})
+		bound_path.RotatePath(ctx.RotateCluster, Point{ctx.Xabs*k.U1Width() + k.DMZ + k.LeftPad, ctx.Yabs*k.U1 + k.DMZ + k.TopPad})
 	}
 	k.UpdateBounds(bound_path, init)
 
@@ -202,7 +202,7 @@ func (key *Key) Draw(k *KAD, c Point, ctx Key, init bool) {
 	switch_path.Rel(c) // make the path relative to center
 
 	if ctx.RotateCluster != 0 {
-		switch_path.RotatePath(ctx.RotateCluster, Point{ctx.Xabs*k.U1 + k.DMZ + k.LeftPad, ctx.Yabs*k.U1 + k.DMZ + k.TopPad})
+		switch_path.RotatePath(ctx.RotateCluster, Point{ctx.Xabs*k.U1Width() + k.DMZ + k.LeftPad, ctx.Yabs*k.U1Height() + k.DMZ + k.TopPad})
 	}
 
 	// check if the key needs stabilizer cutouts
@@ -223,7 +223,7 @@ func (key *Key) Draw(k *KAD, c Point, ctx Key, init bool) {
 	}
 
 	if key.Width == 6 || (vertical && key.Height == 6) { // adjust for offcenter stem switch
-		switch_path.Rel(Point{k.U1 / 2, 0}) // off center is 1/2 a switch right
+		switch_path.Rel(Point{k.U1Width() / 2, 0}) // off center is 1/2 a switch right
 	}
 
 	k.Layers[SWITCHLAYER].CutPolys = append(k.Layers[SWITCHLAYER].CutPolys, switch_path)
@@ -268,7 +268,7 @@ func (key *Key) DrawCherryCostarStab(k *KAD, c Point, ctx Key, vertical, flip_st
 
 	stab_path.Rel(c)
 	if ctx.RotateCluster != 0 {
-		stab_path.RotatePath(ctx.RotateCluster, Point{ctx.Xabs*k.U1 + k.DMZ + k.LeftPad, ctx.Yabs*k.U1 + k.DMZ + k.TopPad})
+		stab_path.RotatePath(ctx.RotateCluster, Point{ctx.Xabs*k.U1Width() + k.DMZ + k.LeftPad, ctx.Yabs*k.U1Height() + k.DMZ + k.TopPad})
 	}
 	k.Layers[SWITCHLAYER].CutPolys = append(k.Layers[SWITCHLAYER].CutPolys, stab_path)
 }
@@ -310,7 +310,7 @@ func (key *Key) DrawCherryStab(k *KAD, c Point, ctx Key, vertical, flip_stab boo
 
 	stab_path.Rel(c)
 	if ctx.RotateCluster != 0 {
-		stab_path.RotatePath(ctx.RotateCluster, Point{ctx.Xabs*k.U1 + k.DMZ + k.LeftPad, ctx.Yabs*k.U1 + k.DMZ + k.TopPad})
+		stab_path.RotatePath(ctx.RotateCluster, Point{ctx.Xabs*k.U1Width() + k.DMZ + k.LeftPad, ctx.Yabs*k.U1Height() + k.DMZ + k.TopPad})
 	}
 	k.Layers[SWITCHLAYER].CutPolys = append(k.Layers[SWITCHLAYER].CutPolys, stab_path)
 }
@@ -354,8 +354,8 @@ func (key *Key) DrawCostarStab(k *KAD, c Point, ctx Key, vertical, flip_stab boo
 	stab_path_l.Rel(c)
 	stab_path_r.Rel(c)
 	if ctx.RotateCluster != 0 {
-		stab_path_l.RotatePath(ctx.RotateCluster, Point{ctx.Xabs*k.U1 + k.DMZ + k.LeftPad, ctx.Yabs*k.U1 + k.DMZ + k.TopPad})
-		stab_path_r.RotatePath(ctx.RotateCluster, Point{ctx.Xabs*k.U1 + k.DMZ + k.LeftPad, ctx.Yabs*k.U1 + k.DMZ + k.TopPad})
+		stab_path_l.RotatePath(ctx.RotateCluster, Point{ctx.Xabs*k.U1Width() + k.DMZ + k.LeftPad, ctx.Yabs*k.U1Height() + k.DMZ + k.TopPad})
+		stab_path_r.RotatePath(ctx.RotateCluster, Point{ctx.Xabs*k.U1Width() + k.DMZ + k.LeftPad, ctx.Yabs*k.U1Height() + k.DMZ + k.TopPad})
 	}
 	k.Layers[SWITCHLAYER].CutPolys = append(k.Layers[SWITCHLAYER].CutPolys, stab_path_l)
 	k.Layers[SWITCHLAYER].CutPolys = append(k.Layers[SWITCHLAYER].CutPolys, stab_path_r)
@@ -397,8 +397,8 @@ func (key *Key) DrawAlpsStab(k *KAD, c Point, ctx Key, vertical, flip_stab bool)
 		stab_path_l.Rel(c)
 		stab_path_r.Rel(c)
 		if ctx.RotateCluster != 0 {
-			stab_path_l.RotatePath(ctx.RotateCluster, Point{ctx.Xabs*k.U1 + k.DMZ + k.LeftPad, ctx.Yabs*k.U1 + k.DMZ + k.TopPad})
-			stab_path_r.RotatePath(ctx.RotateCluster, Point{ctx.Xabs*k.U1 + k.DMZ + k.LeftPad, ctx.Yabs*k.U1 + k.DMZ + k.TopPad})
+			stab_path_l.RotatePath(ctx.RotateCluster, Point{ctx.Xabs*k.U1Width() + k.DMZ + k.LeftPad, ctx.Yabs*k.U1Height() + k.DMZ + k.TopPad})
+			stab_path_r.RotatePath(ctx.RotateCluster, Point{ctx.Xabs*k.U1Width() + k.DMZ + k.LeftPad, ctx.Yabs*k.U1Height() + k.DMZ + k.TopPad})
 		}
 		k.Layers[SWITCHLAYER].CutPolys = append(k.Layers[SWITCHLAYER].CutPolys, stab_path_l)
 		k.Layers[SWITCHLAYER].CutPolys = append(k.Layers[SWITCHLAYER].CutPolys, stab_path_r)
