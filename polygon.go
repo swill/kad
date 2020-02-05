@@ -30,6 +30,7 @@ type CustomPolygon struct {
 	RelTo    string   `json:"rel_to"`
 	RelAbs   string   `json:"-"`
 	Width    float64  `json:"width"`
+	Angle    float64  `json:"angle"`
 }
 
 // Sets the path to the absolute positioning of the Path relative to an origin Point 'r'.
@@ -255,6 +256,13 @@ func (k *KAD) FinalizePolygons() {
 							}
 						}
 						break
+					case "custom-hexagon":
+						for _, path := range paths {
+							for _, pt := range path {
+								polygons = append(polygons, HexagonPolygon(pt.X, pt.Y, cp.Radius, cp.Angle))
+							}
+						}
+						break
 					case "custom-path":
 						for _, path := range paths {
 							if len(path) > 2 {
@@ -438,6 +446,26 @@ func CirclePolygon(cx, cy, r float64, s int) Path {
 	// draw the circle
 	pts := make(Path, 0)
 	circle(cx, cy-r, r, s, &pts)
+	return pts
+}
+
+// create a regular hexagon with vertices at distance 'r' from the center.
+// set 'a' (angle in degrees) to rotate the hexagon around its center.
+func HexagonPolygon(cx, cy, r float64, a float64) Path {
+	// make a hexagon
+	hexagon := func(x, y, r float64, a float64, ps *Path) {
+		p := &Point{x, y}
+		*ps = append(*ps, *p)
+		for j := 0.0; j <= 6.0; j++ {
+			aj := a + 60.0*j
+			p.X = x + r * math.Cos(radians(aj))
+			p.Y = y + r * math.Sin(radians(aj))
+			*ps = append(*ps, *p)
+		}
+	}
+	// draw the hexagon
+	pts := make(Path, 0)
+	hexagon(cx, cy, r, a, &pts)
 	return pts
 }
 
