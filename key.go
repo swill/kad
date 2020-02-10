@@ -98,7 +98,13 @@ func GetAlpsStabOffset(size float64) (float64, error) {
 
 func GetKailhChocStabOffset(size float64) (float64, error) {
 	switch size {
+	case 1.75: // 1.75u
+		return 11.975, nil
 	case 2.0: // 2.0u
+		return 11.975, nil
+	case 2.25: // 2.25u
+		return 11.975, nil
+	case 2.75: // 2.75u
 		return 11.975, nil
 	case 6.25: // 6.25u
 		return 37.95, nil
