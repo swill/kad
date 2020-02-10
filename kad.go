@@ -13,7 +13,7 @@ import (
 	"strings"
 
 	"github.com/ncw/swift"
-	"github.com/swill/svgo"
+	"github.com/ajstarks/svgo/float"
 )
 
 const (
@@ -432,8 +432,8 @@ func (k *KAD) DrawOutputFiles() error {
 
 		k.Svgs[layer] = SvgWrapper{File: file, Svg: svg.New(file)}
 		canvas := k.Svgs[layer].Svg
-		canvas.FloatDecimals = 3
-		canvas.StartviewUnitF(k.Width+2*k.DMZ, k.Height+2*k.DMZ, k.UOM, 0, 0, k.Width+2*k.DMZ, k.Height+2*k.DMZ)
+		canvas.Decimals = 3
+		canvas.StartviewUnit(k.Width+2*k.DMZ, k.Height+2*k.DMZ, k.UOM, 0, 0, k.Width+2*k.DMZ, k.Height+2*k.DMZ)
 
 		// draw the elements
 		if len(k.Layers[layer].KeepPolys) > 0 { // draw polygons
@@ -441,7 +441,7 @@ func (k *KAD) DrawOutputFiles() error {
 			for _, poly := range k.Layers[layer].KeepPolys {
 				if len(poly) > 0 {
 					xs, ys = poly.SplitOnAxis()
-					canvas.PolygonF(xs, ys, k.SvgStyle)
+					canvas.Polygon(xs, ys, k.SvgStyle)
 				}
 			}
 		}
