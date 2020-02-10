@@ -105,3 +105,34 @@ func TestStabAlpsSize(t *testing.T) {
 		return
 	}
 }
+
+func TestStabKailhChocSize(t *testing.T) {
+	json_str := `{
+		"layout":[
+			[{"w":2},"", {"w":6.25},""]
+		]}`
+
+	cad := kad.New()
+
+	// populate the kad object with the request POST json, oh and get the hash...
+	decoder := json.NewDecoder(strings.NewReader(json_str))
+	err := decoder.Decode(cad)
+	if err != nil {
+		t.Errorf("TestStabKailhChocSize: failed to parse json data into KAD file")
+		return
+	}
+
+	cad.Hash = "stab_kailh_choc_size"
+	cad.FileStore = kad.STORE_LOCAL
+	cad.FileDirectory = "./output/"
+	cad.FileServePath = "/test/output/"
+
+	cad.SwitchType = kad.SWITCHMX
+	cad.StabType = kad.STABKAILHCHOC
+
+	err = cad.Draw()
+	if err != nil {
+		t.Errorf("TestStabKailhChocSize: failed to Draw the KAD file")
+		return
+	}
+}

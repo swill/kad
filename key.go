@@ -17,6 +17,7 @@ const (
 	STABCHERRY       = 2
 	STABCOSTAR       = 3
 	STABALPS         = 4
+	STABKAILHCHOC    = 5
 )
 
 type Key struct {
@@ -95,13 +96,24 @@ func GetAlpsStabOffset(size float64) (float64, error) {
 	}
 }
 
+func GetKailhChocStabOffset(size float64) (float64, error) {
+	switch size {
+	case 2.0: // 2.0u
+		return 11.975, nil
+	case 6.25: // 6.25u
+		return 37.95, nil
+	default:
+		return 0, errors.New(fmt.Sprintf("No kailh choc stabilizer offset defined for a %fu key.", size))
+	}
+}
+
 // Draw an individual switch/stabilizer opening.
 func (key *Key) Draw(k *KAD, c Point, ctx Key, init bool) {
 	// set the key defaults and update items like kerf to the functional value
 	if !in_ints(key.Type, []int{SWITCHMX, SWITCHMXALPS, SWITCHMXH, SWITCHALPS}) {
 		key.Type = k.SwitchType
 	}
-	if !in_ints(key.Stab, []int{STABREMOVE, STABCHERRYCOSTAR, STABCHERRY, STABCOSTAR, STABALPS}) {
+	if !in_ints(key.Stab, []int{STABREMOVE, STABCHERRYCOSTAR, STABCHERRY, STABCOSTAR, STABALPS, STABKAILHCHOC}) {
 		key.Stab = k.StabType
 	}
 	if key.Kerf != 0 {
@@ -220,6 +232,8 @@ func (key *Key) Draw(k *KAD, c Point, ctx Key, init bool) {
 		key.DrawCostarStab(k, c, ctx, vertical, flip_stab)
 	case STABALPS:
 		key.DrawAlpsStab(k, c, ctx, vertical, flip_stab)
+	case STABKAILHCHOC:
+		key.DrawKailhChocStab(k, c, ctx, vertical, flip_stab)
 	}
 
 	if key.Width == 6 || (vertical && key.Height == 6) { // adjust for offcenter stem switch
@@ -405,4 +419,61 @@ func (key *Key) DrawAlpsStab(k *KAD, c Point, ctx Key, vertical, flip_stab bool)
 	} else { // not a known size, draw a coster instead...
 		key.DrawCostarStab(k, c, ctx, vertical, flip_stab)
 	}
+}
+
+// draw the Kailh Choc stabilizer
+func (key *Key) DrawKailhChocStab(k *KAD, c Point, ctx Key, vertical, flip_stab bool) {
+	// special case where 'union' will never be applied, so 'stab_path' is not used
+	var stab_path_l Path
+	var stab_path_r Path
+	size := key.Width
+	if vertical {
+		size = key.Height
+	}
+
+	s, err := GetKailhChocStabOffset(size)
+
+	// if we don't know the offset, abort as no other shapes will fit our stabiliser properly
+	if err != nil {
+		return
+	}
+
+	// kerf is an additional amount to allow for when drawing lines
+	// kerf operator is the inverse of the preceeding number (- for +number, + for -number)
+	// points are x,y relative the center point of the key shape. S is used to modify that for left and right
+	stab_path_l = Path{
+		{-s - 3.15 + key.Kerf, 2.3 - key.Kerf}, {-s + 3.15 - key.Kerf, 2.3 - key.Kerf},
+		{-s + 3.15 - key.Kerf, -4.3 + key.Kerf}, {-s + 1.55 - key.Kerf, -4.3 + key.Kerf},
+		{-s + 1.55 - key.Kerf, -7.6 + key.Kerf}, {-s - 1.55 + key.Kerf, -7.6 + key.Kerf},
+		{-s - 1.55 + key.Kerf, -4.3 + key.Kerf}, {-s - 3.15 + key.Kerf, -4.3 + key.Kerf},
+	}
+
+	stab_path_r = Path{
+		{s - 3.15 + key.Kerf, 2.3 - key.Kerf}, {s + 3.15 - key.Kerf, 2.3 - key.Kerf},
+		{s + 3.15 - key.Kerf, -4.3 + key.Kerf}, {s + 1.55 - key.Kerf, -4.3 + key.Kerf},
+		{s + 1.55 - key.Kerf, -7.6 + key.Kerf}, {s - 1.55 + key.Kerf, -7.6 + key.Kerf},
+		{s - 1.55 + key.Kerf, -4.3 + key.Kerf}, {s - 3.15 + key.Kerf, -4.3 + key.Kerf},
+	}
+	if vertical {
+		stab_path_l.RotatePath(90, Point{0, 0})
+		stab_path_r.RotatePath(90, Point{0, 0})
+	}
+	if flip_stab {
+		stab_path_l.RotatePath(180, Point{0, 0})
+		stab_path_r.RotatePath(180, Point{0, 0})
+	}
+	if key.RotateStab != 0 {
+		stab_path_l.RotatePath(key.RotateStab, Point{0, 0})
+		stab_path_r.RotatePath(key.RotateStab, Point{0, 0})
+	}
+	// draw each shape relative to the given origin point
+	stab_path_l.Rel(c)
+	stab_path_r.Rel(c)
+	if ctx.RotateCluster != 0 {
+		stab_path_l.RotatePath(ctx.RotateCluster, Point{ctx.Xabs*k.U1 + k.DMZ + k.LeftPad, ctx.Yabs*k.U1 + k.DMZ + k.TopPad})
+		stab_path_r.RotatePath(ctx.RotateCluster, Point{ctx.Xabs*k.U1 + k.DMZ + k.LeftPad, ctx.Yabs*k.U1 + k.DMZ + k.TopPad})
+	}
+	// add the created shapes to the visible layers to be cut
+	k.Layers[SWITCHLAYER].CutPolys = append(k.Layers[SWITCHLAYER].CutPolys, stab_path_l)
+	k.Layers[SWITCHLAYER].CutPolys = append(k.Layers[SWITCHLAYER].CutPolys, stab_path_r)
 }
