@@ -104,6 +104,8 @@ func GetKailhChocStabOffset(size float64) (float64, error) {
 		return 11.975, nil
 	case 2.25: // 2.25u
 		return 11.975, nil
+	case 2.50: // 2.5u
+		return 11.975, nil
 	case 2.75: // 2.75u
 		return 11.975, nil
 	case 6.25: // 6.25u
