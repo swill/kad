@@ -128,7 +128,7 @@ func TestStabKailhChocSize(t *testing.T) {
 	cad.FileServePath = "/test/output/"
 
 	cad.SwitchType = kad.SWITCHMX
-	cad.StabType = kad.STABKAILHCHOC
+	cad.StabType = kad.STABKAILHCHOCSOCKETED
 
 	err = cad.Draw()
 	if err != nil {
