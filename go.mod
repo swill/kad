@@ -8,7 +8,5 @@ require (
 	github.com/ncw/swift v1.0.53
 	github.com/swill/go.clipper v0.0.0-20160727040122-3274bcc4839c
 	github.com/swill/kad v0.0.0-20200107153136-1d51e0f167e1
-	github.com/swill/svgo v0.0.0-20150713022320-9f84ec778968
+	github.com/swill/svgo v0.0.0-20150715025413-bc384fa1e849
 )
-
-replace github.com/swill/svgo => github.com/swill/svgo v0.0.0-20150715025413-bc384fa1e849
