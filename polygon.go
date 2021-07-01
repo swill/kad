@@ -319,6 +319,30 @@ func (k *KAD) FinalizePolygons() {
 				k.Layers[layer].KeepPolys = keep_union
 			}
 		}
+
+		// get the difference when we do the cut from keep
+		if len(k.Layers[layer].CutPolys) > 0 { // difference with cuts
+			c := clipper.NewClipper(clipper.IoNone)
+			for _, poly := range k.Layers[layer].KeepPolys {
+				c.AddPath(poly.ToClipperPath(), clipper.PtSubject, true)
+			}
+			for _, poly := range k.Layers[layer].CutPolys {
+				c.AddPath(poly.ToClipperPath(), clipper.PtClip, true)
+			}
+			solution, ok := c.Execute1(clipper.CtDifference, clipper.PftNonZero, clipper.PftNonZero)
+			if !ok {
+				log.Printf("ERROR drawing layout: %s, %s", k.Hash, layer)
+				log.Printf("ERROR drawing outer / inner difference...\nKeepPolys: %#v\nCutPolys: %#v",
+					k.Layers[layer].KeepPolys, k.Layers[layer].CutPolys)
+				has_err = true
+			} else {
+				keep_polys := make([]Path, 0)
+				for _, cpath := range solution {
+					keep_polys = append(keep_polys, FromClipperPath(cpath))
+				}
+				k.Layers[layer].KeepPolys = keep_polys
+			}
+		}
 	}
 
 	if has_err {
