@@ -8,15 +8,16 @@ import (
 )
 
 const (
-	SWITCHMX         = 1
-	SWITCHMXALPS     = 2
-	SWITCHMXH        = 3
-	SWITCHALPS       = 4
-	STABREMOVE       = 0
-	STABCHERRYCOSTAR = 1
-	STABCHERRY       = 2
-	STABCOSTAR       = 3
-	STABALPS         = 4
+	SWITCHMX                  = 1
+	SWITCHMXALPS              = 2
+	SWITCHMXH                 = 3
+	SWITCHALPS                = 4
+	STABREMOVE                = 0
+	STABCHERRYCOSTAR          = 1
+	STABCHERRY                = 2
+	STABCOSTAR                = 3
+	STABALPS                  = 4
+	STABCHERRYCOSTARNOCONNECT = 5
 )
 
 type Key struct {
@@ -101,7 +102,7 @@ func (key *Key) Draw(k *KAD, c Point, ctx Key, init bool) {
 	if !in_ints(key.Type, []int{SWITCHMX, SWITCHMXALPS, SWITCHMXH, SWITCHALPS}) {
 		key.Type = k.SwitchType
 	}
-	if !in_ints(key.Stab, []int{STABREMOVE, STABCHERRYCOSTAR, STABCHERRY, STABCOSTAR, STABALPS}) {
+	if !in_ints(key.Stab, []int{STABREMOVE, STABCHERRYCOSTAR, STABCHERRY, STABCOSTAR, STABALPS, STABCHERRYCOSTARNOCONNECT}) {
 		key.Stab = k.StabType
 	}
 	if key.Kerf != 0 {
@@ -213,13 +214,15 @@ func (key *Key) Draw(k *KAD, c Point, ctx Key, init bool) {
 
 	switch key.Stab {
 	case STABCHERRYCOSTAR: // cherry + costar stabilizer
-		key.DrawCherryCostarStab(k, c, ctx, vertical, flip_stab)
+		key.DrawCherryCostarStab(k, c, ctx, vertical, flip_stab, true)
 	case STABCHERRY: // cherry spec stabilizer
 		key.DrawCherryStab(k, c, ctx, vertical, flip_stab)
 	case STABCOSTAR: // costar stabilizer
 		key.DrawCostarStab(k, c, ctx, vertical, flip_stab)
 	case STABALPS:
 		key.DrawAlpsStab(k, c, ctx, vertical, flip_stab)
+	case STABCHERRYCOSTARNOCONNECT: // cherry + costar stabilizer
+		key.DrawCherryCostarStab(k, c, ctx, vertical, flip_stab, false)
 	}
 
 	if key.Width == 6 || (vertical && key.Height == 6) { // adjust for offcenter stem switch
@@ -230,8 +233,10 @@ func (key *Key) Draw(k *KAD, c Point, ctx Key, init bool) {
 }
 
 // path for cherry + costar stabilizer
-func (key *Key) DrawCherryCostarStab(k *KAD, c Point, ctx Key, vertical, flip_stab bool) {
-	var stab_path Path
+func (key *Key) DrawCherryCostarStab(k *KAD, c Point, ctx Key, vertical, flip_stab bool, connector bool) {
+	var stab_path_l Path
+	var stab_path_r Path
+	var blanked_area Path
 	size := key.Width
 	if vertical {
 		size = key.Height
@@ -242,35 +247,63 @@ func (key *Key) DrawCherryCostarStab(k *KAD, c Point, ctx Key, vertical, flip_st
 		return
 	}
 
-	stab_path = Path{
-		{s - 3.375 + key.Kerf, -2.3 + key.Kerf}, {s - 3.375 + key.Kerf, -5.53 + key.Kerf}, {s - 1.65 + key.Kerf, -5.53 + key.Kerf},
-		{s - 1.65 + key.Kerf, -6.45 + key.Kerf}, {s + 1.65 - key.Kerf, -6.45 + key.Kerf}, {s + 1.65 - key.Kerf, -5.53 + key.Kerf},
-		{s + 3.375 - key.Kerf, -5.53 + key.Kerf}, {s + 3.375 - key.Kerf, -2.3 + key.Kerf}, {s + 4.2 - key.Kerf, -2.3 + key.Kerf},
-		{s + 4.2 - key.Kerf, 0.5 - key.Kerf}, {s + 3.375 - key.Kerf, 0.5 - key.Kerf}, {s + 3.375 - key.Kerf, 6.77 - key.Kerf},
-		{s + 1.65 - key.Kerf, 6.77 - key.Kerf}, {s + 1.65 - key.Kerf, 7.75 - key.Kerf}, {s - 1.65 + key.Kerf, 7.75 - key.Kerf},
-		{s - 1.65 + key.Kerf, 6.77 - key.Kerf}, {s - 3.375 + key.Kerf, 6.77 - key.Kerf}, {s - 3.375 + key.Kerf, 2.3 - key.Kerf},
-		{-s + 3.375 - key.Kerf, 2.3 - key.Kerf}, {-s + 3.375 - key.Kerf, 6.77 - key.Kerf}, {-s + 1.65 - key.Kerf, 6.77 - key.Kerf},
-		{-s + 1.65 - key.Kerf, 7.75 - key.Kerf}, {-s - 1.65 + key.Kerf, 7.75 - key.Kerf}, {-s - 1.65 + key.Kerf, 6.77 - key.Kerf},
-		{-s - 3.375 + key.Kerf, 6.77 - key.Kerf}, {-s - 3.375 + key.Kerf, 0.5 - key.Kerf}, {-s - 4.2 + key.Kerf, 0.5 - key.Kerf},
-		{-s - 4.2 + key.Kerf, -2.3 + key.Kerf}, {-s - 3.375 + key.Kerf, -2.3 + key.Kerf}, {-s - 3.375 + key.Kerf, -5.53 + key.Kerf},
-		{-s - 1.65 + key.Kerf, -5.53 + key.Kerf}, {-s - 1.65 + key.Kerf, -6.45 + key.Kerf}, {-s + 1.65 - key.Kerf, -6.45 + key.Kerf},
-		{-s + 1.65 - key.Kerf, -5.53 + key.Kerf}, {-s + 3.375 - key.Kerf, -5.53 + key.Kerf}, {-s + 3.375 - key.Kerf, -2.3 + key.Kerf},
-	}
-	if vertical {
-		stab_path.RotatePath(90, Point{0, 0})
-	}
-	if flip_stab {
-		stab_path.RotatePath(180, Point{0, 0})
-	}
-	if key.RotateStab != 0 {
-		stab_path.RotatePath(key.RotateStab, Point{0, 0})
+	l := -s
+	r := s
+
+	stab_path_l = Path{
+		{l - 3.375 + key.Kerf, -2.3 + key.Kerf}, {l - 3.375 + key.Kerf, -5.53 + key.Kerf}, {l - 1.65 + key.Kerf, -5.53 + key.Kerf},
+		{l - 1.65 + key.Kerf, -6.45 + key.Kerf}, {l + 1.65 - key.Kerf, -6.45 + key.Kerf}, {l + 1.65 - key.Kerf, -5.53 + key.Kerf},
+		{l + 3.375 - key.Kerf, -5.53 + key.Kerf}, {l + 3.375 - key.Kerf, -2.3 + key.Kerf}, {l + 4.2 - key.Kerf, -2.3 + key.Kerf},
+		{l + 4.2 - key.Kerf, 0.5 - key.Kerf}, {l + 3.375 - key.Kerf, 0.5 - key.Kerf}, {l + 3.375 - key.Kerf, 6.77 - key.Kerf},
+		{l + 1.65 - key.Kerf, 6.77 - key.Kerf}, {l + 1.65 - key.Kerf, 7.75 - key.Kerf}, {l - 1.65 + key.Kerf, 7.75 - key.Kerf},
+		{l - 1.65 + key.Kerf, 6.77 - key.Kerf}, {l - 3.375 + key.Kerf, 6.77 - key.Kerf}, {l - 3.375 + key.Kerf, 2.3 - key.Kerf},
+		{l - 3.375 - key.Kerf, 0.5 - key.Kerf}, {l - 4.2 - key.Kerf, 0.5 - key.Kerf}, {l - 4.2 - key.Kerf, -2.3 - key.Kerf},
 	}
 
-	stab_path.Rel(c)
-	if ctx.RotateCluster != 0 {
-		stab_path.RotatePath(ctx.RotateCluster, Point{ctx.Xabs*k.U1 + k.DMZ + k.LeftPad, ctx.Yabs*k.U1 + k.DMZ + k.TopPad})
+	stab_path_r = Path{
+		{r - 3.375 + key.Kerf, -2.3 + key.Kerf}, {r - 3.375 + key.Kerf, -5.53 + key.Kerf}, {r - 1.65 + key.Kerf, -5.53 + key.Kerf},
+		{r - 1.65 + key.Kerf, -6.45 + key.Kerf}, {r + 1.65 - key.Kerf, -6.45 + key.Kerf}, {r + 1.65 - key.Kerf, -5.53 + key.Kerf},
+		{r + 3.375 - key.Kerf, -5.53 + key.Kerf}, {r + 3.375 - key.Kerf, -2.3 + key.Kerf}, {r + 4.2 - key.Kerf, -2.3 + key.Kerf},
+		{r + 4.2 - key.Kerf, 0.5 - key.Kerf}, {r + 3.375 - key.Kerf, 0.5 - key.Kerf}, {r + 3.375 - key.Kerf, 6.77 - key.Kerf},
+		{r + 1.65 - key.Kerf, 6.77 - key.Kerf}, {r + 1.65 - key.Kerf, 7.75 - key.Kerf}, {r - 1.65 + key.Kerf, 7.75 - key.Kerf},
+		{r - 1.65 + key.Kerf, 6.77 - key.Kerf}, {r - 3.375 + key.Kerf, 6.77 - key.Kerf}, {r - 3.375 + key.Kerf, 2.3 - key.Kerf},
+		{r - 3.375 - key.Kerf, 0.5 - key.Kerf}, {r - 4.2 - key.Kerf, 0.5 - key.Kerf}, {r - 4.2 - key.Kerf, -2.3 - key.Kerf},
 	}
-	k.Layers[SWITCHLAYER].CutPolys = append(k.Layers[SWITCHLAYER].CutPolys, stab_path)
+
+	blanked_area = Path{
+		{r - 3.375 + key.Kerf, 2.3 - key.Kerf}, {l + 3.375 - key.Kerf, 2.3 - key.Kerf}, {l - 3.375 - key.Kerf, -2.3 - key.Kerf},
+		{r - 3.375 + key.Kerf, -2.3 - key.Kerf},
+	}
+
+	if vertical {
+		stab_path_l.RotatePath(90, Point{0, 0})
+		stab_path_r.RotatePath(90, Point{0, 0})
+		blanked_area.RotatePath(90, Point{0, 0})
+	}
+	if flip_stab {
+		stab_path_l.RotatePath(180, Point{0, 0})
+		stab_path_r.RotatePath(180, Point{0, 0})
+		blanked_area.RotatePath(180, Point{0, 0})
+	}
+	if key.RotateStab != 0 {
+		stab_path_l.RotatePath(key.RotateStab, Point{0, 0})
+		stab_path_r.RotatePath(key.RotateStab, Point{0, 0})
+		blanked_area.RotatePath(key.RotateStab, Point{0, 0})
+	}
+
+	stab_path_l.Rel(c)
+	stab_path_r.Rel(c)
+	blanked_area.Rel(c)
+	if ctx.RotateCluster != 0 {
+		stab_path_l.RotatePath(ctx.RotateCluster, Point{ctx.Xabs*k.U1 + k.DMZ + k.LeftPad, ctx.Yabs*k.U1 + k.DMZ + k.TopPad})
+		stab_path_r.RotatePath(ctx.RotateCluster, Point{ctx.Xabs*k.U1 + k.DMZ + k.LeftPad, ctx.Yabs*k.U1 + k.DMZ + k.TopPad})
+		blanked_area.RotatePath(ctx.RotateCluster, Point{ctx.Xabs*k.U1 + k.DMZ + k.LeftPad, ctx.Yabs*k.U1 + k.DMZ + k.TopPad})
+	}
+	k.Layers[SWITCHLAYER].CutPolys = append(k.Layers[SWITCHLAYER].CutPolys, stab_path_l)
+	k.Layers[SWITCHLAYER].CutPolys = append(k.Layers[SWITCHLAYER].CutPolys, stab_path_r)
+	if connector {
+		k.Layers[SWITCHLAYER].CutPolys = append(k.Layers[SWITCHLAYER].CutPolys, blanked_area)
+	}
 }
 
 // path for cherry stabilizer

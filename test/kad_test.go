@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/lotier/kad"
 	clipper "github.com/swill/go.clipper"
-	"github.com/swill/kad"
 )
 
 func TestUsageWithJSON(t *testing.T) {
