@@ -12,8 +12,8 @@ import (
 	"runtime"
 	"strings"
 
+	svg "github.com/ajstarks/svgo/float"
 	"github.com/ncw/swift"
-	"github.com/swill/svgo"
 )
 
 const (
@@ -43,6 +43,7 @@ type KAD struct {
 	Ygrow          float64         `json:"grow_y"`
 	SwitchType     int             `json:"switch-type"`
 	StabType       int             `json:"stab-type"`
+	ConnectedStabs bool            `json:"connected-stabs"`
 	Case           Case            `json:"case"`
 	CustomPolygons []CustomPolygon `json:"custom"`
 	RawLayout      []interface{}   `json:"layout"`
@@ -109,25 +110,26 @@ type UploadCtl struct {
 
 func New() *KAD {
 	k := &KAD{
-		Hash:         "",
-		UOM:          "mm",
-		U1:           19.05,
-		DMZ:          5,
-		Width:        0,
-		Height:       0,
-		LayoutCenter: Point{},
-		CaseCenter:   Point{},
-		Fillet:       0,
-		Kerf:         0,
-		Xoff:         0,
-		TopPad:       0,
-		LeftPad:      0,
-		RightPad:     0,
-		BottomPad:    0,
-		Xgrow:        0,
-		Ygrow:        0,
-		SwitchType:   SWITCHMXH,
-		StabType:     STABCHERRYCOSTAR,
+		Hash:           "",
+		UOM:            "mm",
+		U1:             19.05,
+		DMZ:            5,
+		Width:          0,
+		Height:         0,
+		LayoutCenter:   Point{},
+		CaseCenter:     Point{},
+		Fillet:         0,
+		Kerf:           0,
+		Xoff:           0,
+		TopPad:         0,
+		LeftPad:        0,
+		RightPad:       0,
+		BottomPad:      0,
+		Xgrow:          0,
+		Ygrow:          0,
+		SwitchType:     SWITCHMXH,
+		StabType:       STABCHERRYCOSTAR,
+		ConnectedStabs: true,
 		Case: Case{
 			EdgeWidth:   0,
 			LeftWidth:   0,
@@ -403,7 +405,7 @@ func (k *KAD) FinalizeLayerDimensions() {
 	// shift the points based on the updated dimensions
 	for _, layer := range k.Result.Plates {
 		// shift points by offset
-		for p, _ := range k.Layers[layer].KeepPolys {
+		for p := range k.Layers[layer].KeepPolys {
 			k.Layers[layer].KeepPolys[p].Rel(*offset)
 		}
 		// update result sizes
@@ -432,8 +434,8 @@ func (k *KAD) DrawOutputFiles() error {
 
 		k.Svgs[layer] = SvgWrapper{File: file, Svg: svg.New(file)}
 		canvas := k.Svgs[layer].Svg
-		canvas.FloatDecimals = 3
-		canvas.StartviewUnitF(k.Width+2*k.DMZ, k.Height+2*k.DMZ, k.UOM, 0, 0, k.Width+2*k.DMZ, k.Height+2*k.DMZ)
+		canvas.Decimals = 3
+		canvas.StartviewUnit(k.Width+2*k.DMZ, k.Height+2*k.DMZ, k.UOM, 0, 0, k.Width+2*k.DMZ, k.Height+2*k.DMZ)
 
 		// draw the elements
 		if len(k.Layers[layer].KeepPolys) > 0 { // draw polygons
@@ -441,7 +443,7 @@ func (k *KAD) DrawOutputFiles() error {
 			for _, poly := range k.Layers[layer].KeepPolys {
 				if len(poly) > 0 {
 					xs, ys = poly.SplitOnAxis()
-					canvas.PolygonF(xs, ys, k.SvgStyle)
+					canvas.Polygon(xs, ys, k.SvgStyle)
 				}
 			}
 		}
