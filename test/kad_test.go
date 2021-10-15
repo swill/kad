@@ -13,6 +13,7 @@ func TestUsageWithJSON(t *testing.T) {
 	json_str := `{
 		"switch-type":3,
 		"stab-type":1,
+		"connected-stabs":true,
 		"layout":[
 			["Num Lock","/","*","-"],
 			[{"f":3},"7\nHome","8\n↑","9\nPgUp",{"h":2}," "],

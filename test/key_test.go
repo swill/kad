@@ -39,6 +39,78 @@ func TestSwitchTypes(t *testing.T) {
 	}
 }
 
+func TestStabCherryCostarSize(t *testing.T) {
+	json_str := `{
+		"layout":[
+			[{"w":2},"", {"w":10},""],
+			[{"w":3},"", {"w":9},""],
+			[{"w":4},"", {"w":8},""],
+			[{"w":2.25},"", {"w":2.75},"", {"w":7},""],
+			[{"w":5.5},"", {"w":6.5},""],
+			[{"w":1.25},"", {"w":4.5},"", {"w":6.25},""],
+			[{"w":6},"", {"w":6},""]
+		]}`
+
+	cad := kad.New()
+
+	// populate the kad object with the request POST json, oh and get the hash...
+	decoder := json.NewDecoder(strings.NewReader(json_str))
+	err := decoder.Decode(cad)
+	if err != nil {
+		t.Errorf("TestStabCherryCostarSize: failed to parse json data into KAD file")
+		return
+	}
+
+	cad.Hash = "stab_cherry_costar_size"
+	cad.FileStore = kad.STORE_LOCAL
+	cad.FileDirectory = "./output/"
+	cad.FileServePath = "/test/output/"
+
+	err = cad.Draw()
+	if err != nil {
+		t.Errorf("TestStabCherryCostarSize: failed to Draw the KAD file")
+		return
+	}
+}
+
+func TestStabCostarSize(t *testing.T) {
+	json_str := `{
+		"layout":[
+			[{"w":2},"", {"w":10},""],
+			[{"w":3},"", {"w":9},""],
+			[{"w":4},"", {"w":8},""],
+			[{"w":2.25},"", {"w":2.75},"", {"w":7},""],
+			[{"w":5.5},"", {"w":6.5},""],
+			[{"w":1.25},"", {"w":4.5},"", {"w":6.25},""],
+			[{"w":6},"", {"w":6},""]
+		]}`
+
+	cad := kad.New()
+
+	// populate the kad object with the request POST json, oh and get the hash...
+	decoder := json.NewDecoder(strings.NewReader(json_str))
+	err := decoder.Decode(cad)
+	if err != nil {
+		t.Errorf("TestStabCostarSize: failed to parse json data into KAD file")
+		return
+	}
+
+	cad.Hash = "stab_costar_size"
+	cad.FileStore = kad.STORE_LOCAL
+	cad.FileDirectory = "./output/"
+	cad.FileServePath = "/test/output/"
+
+	cad.ConnectedStabs = false
+
+	cad.StabType = kad.STABCOSTAR
+
+	err = cad.Draw()
+	if err != nil {
+		t.Errorf("TestStabCostarSize: failed to Draw the KAD file")
+		return
+	}
+}
+
 func TestStabCherrySize(t *testing.T) {
 	json_str := `{
 		"layout":[
@@ -65,6 +137,8 @@ func TestStabCherrySize(t *testing.T) {
 	cad.FileStore = kad.STORE_LOCAL
 	cad.FileDirectory = "./output/"
 	cad.FileServePath = "/test/output/"
+
+	cad.StabType = kad.STABCHERRY
 
 	err = cad.Draw()
 	if err != nil {
