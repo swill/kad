@@ -146,80 +146,7 @@ func (k *KAD) FinalizePolygons() {
 			k.Width, k.Height, k.Fillet, corner_segments)
 		k.Layers[layer].KeepPolys = []Path{keep_poly}
 
-		// union all of the cut polygons to make sure we don't have any crossing cut paths
-		if len(k.Layers[layer].CutPolys) > 0 { // union all inside
-			c := clipper.NewClipper(clipper.IoNone)
-			c.AddPath(Path{}.ToClipperPath(), clipper.PtSubject, true)
-			for _, poly := range k.Layers[layer].CutPolys {
-				c.AddPath(poly.ToClipperPath(), clipper.PtClip, true)
-			}
-			solution, ok := c.Execute1(clipper.CtUnion, clipper.PftNonZero, clipper.PftNonZero)
-			if !ok {
-				log.Printf("ERROR drawing layout: %s, %s", k.Hash, layer)
-				log.Printf("ERROR drawing inner union...\nCutPolys: %#v", k.Layers[layer].CutPolys)
-				has_err = true
-			} else {
-				cut_union := make([]Path, 0)
-				for _, cpath := range solution {
-					cut_union = append(cut_union, FromClipperPath(cpath))
-				}
-				k.Layers[layer].CutPolys = cut_union
-			}
-		}
-
-		// union all of the keep polygons to make sure we don't have any crossing keep paths
-		if len(k.Layers[layer].KeepPolys) > 0 { // union all inside
-			c := clipper.NewClipper(clipper.IoNone)
-			c.AddPath(Path{}.ToClipperPath(), clipper.PtSubject, true)
-			for _, poly := range k.Layers[layer].KeepPolys {
-				c.AddPath(poly.ToClipperPath(), clipper.PtClip, true)
-			}
-			solution, ok := c.Execute1(clipper.CtUnion, clipper.PftNonZero, clipper.PftNonZero)
-			if !ok {
-				log.Printf("ERROR drawing layout: %s, %s", k.Hash, layer)
-				log.Printf("ERROR drawing inner union...\nKeepPolys: %#v", k.Layers[layer].KeepPolys)
-				has_err = true
-			} else {
-				keep_union := make([]Path, 0)
-				for _, cpath := range solution {
-					keep_union = append(keep_union, FromClipperPath(cpath))
-				}
-				k.Layers[layer].KeepPolys = keep_union
-			}
-		}
-
-		// at this point we have everything we need to evaluate if any cut polygons cross the exterior keep boundary
-
-		// get the surface areas before we 'cut' from the 'keep' paths
-		k.Result.Details[layer].Area = SurfaceArea(k.Layers[layer].KeepPolys) - SurfaceArea(k.Layers[layer].CutPolys)
-
-		// get the difference when we do the cut from keep
-		if len(k.Layers[layer].CutPolys) > 0 { // difference with cuts
-			c := clipper.NewClipper(clipper.IoNone)
-			for _, poly := range k.Layers[layer].KeepPolys {
-				c.AddPath(poly.ToClipperPath(), clipper.PtSubject, true)
-			}
-			for _, poly := range k.Layers[layer].CutPolys {
-				c.AddPath(poly.ToClipperPath(), clipper.PtClip, true)
-			}
-			solution, ok := c.Execute1(clipper.CtDifference, clipper.PftNonZero, clipper.PftNonZero)
-			if !ok {
-				log.Printf("ERROR drawing layout: %s, %s", k.Hash, layer)
-				log.Printf("ERROR drawing outer / inner difference...\nKeepPolys: %#v\nCutPolys: %#v",
-					k.Layers[layer].KeepPolys, k.Layers[layer].CutPolys)
-				has_err = true
-			} else {
-				keep_polys := make([]Path, 0)
-				for _, cpath := range solution {
-					keep_polys = append(keep_polys, FromClipperPath(cpath))
-				}
-				k.Layers[layer].KeepPolys = keep_polys
-			}
-		}
-
-		// ****************************************************
-		// *** handle custom polygons added to this drawing ***
-		// ****************************************************
+		// handle custom polygons added to this drawing
 		for _, cp := range k.CustomPolygons {
 			if in_strings(layer, cp.Layers) { // apply this custom polygon to this layer
 				paths := k.ParsePoints(cp.Points, cp.RelTo, true)
@@ -317,6 +244,35 @@ func (k *KAD) FinalizePolygons() {
 					keep_union = append(keep_union, FromClipperPath(cpath))
 				}
 				k.Layers[layer].KeepPolys = keep_union
+			}
+		}
+
+		// at this point we have everything we need to evaluate if any cut polygons cross the exterior keep boundary
+
+		// get the surface areas before we 'cut' from the 'keep' paths
+		k.Result.Details[layer].Area = SurfaceArea(k.Layers[layer].KeepPolys) - SurfaceArea(k.Layers[layer].CutPolys)
+
+		// get the difference when we do the cut from keep
+		if len(k.Layers[layer].CutPolys) > 0 { // difference with cuts
+			c := clipper.NewClipper(clipper.IoNone)
+			for _, poly := range k.Layers[layer].KeepPolys {
+				c.AddPath(poly.ToClipperPath(), clipper.PtSubject, true)
+			}
+			for _, poly := range k.Layers[layer].CutPolys {
+				c.AddPath(poly.ToClipperPath(), clipper.PtClip, true)
+			}
+			solution, ok := c.Execute1(clipper.CtDifference, clipper.PftNonZero, clipper.PftNonZero)
+			if !ok {
+				log.Printf("ERROR drawing layout: %s, %s", k.Hash, layer)
+				log.Printf("ERROR drawing outer / inner difference...\nKeepPolys: %#v\nCutPolys: %#v",
+					k.Layers[layer].KeepPolys, k.Layers[layer].CutPolys)
+				has_err = true
+			} else {
+				keep_polys := make([]Path, 0)
+				for _, cpath := range solution {
+					keep_polys = append(keep_polys, FromClipperPath(cpath))
+				}
+				k.Layers[layer].KeepPolys = keep_polys
 			}
 		}
 	}
