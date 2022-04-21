@@ -14,7 +14,7 @@ KAD is a Golang library to aid in the design of mechanical keyboard plates and c
 $ go get github.com/swill/kad
 ```
 
-### Installing DXF dependencies on macOS
+### Installing DXF dependencies on MacOS
 
 You need [Homebrew](https://brew.sh/) installed.
 
