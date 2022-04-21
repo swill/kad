@@ -19,6 +19,9 @@ func TestSwitchTypes(t *testing.T) {
 
 	cad := kad.New()
 
+	// force only SVG output
+	cad.Result.Formats = []string{"svg"}
+
 	// populate the kad object with the request POST json, oh and get the hash...
 	decoder := json.NewDecoder(strings.NewReader(json_str))
 	err := decoder.Decode(cad)
@@ -53,6 +56,9 @@ func TestStabCherrySize(t *testing.T) {
 
 	cad := kad.New()
 
+	// force only SVG output
+	cad.Result.Formats = []string{"svg"}
+
 	// populate the kad object with the request POST json, oh and get the hash...
 	decoder := json.NewDecoder(strings.NewReader(json_str))
 	err := decoder.Decode(cad)
@@ -82,6 +88,9 @@ func TestStabAlpsSize(t *testing.T) {
 		]}`
 
 	cad := kad.New()
+
+	// force only SVG output
+	cad.Result.Formats = []string{"svg"}
 
 	// populate the kad object with the request POST json, oh and get the hash...
 	decoder := json.NewDecoder(strings.NewReader(json_str))

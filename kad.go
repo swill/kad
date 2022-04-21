@@ -13,7 +13,7 @@ import (
 	"strings"
 
 	"github.com/ncw/swift"
-	"github.com/swill/svgo"
+	svg "github.com/swill/svgo"
 )
 
 const (
@@ -403,7 +403,7 @@ func (k *KAD) FinalizeLayerDimensions() {
 	// shift the points based on the updated dimensions
 	for _, layer := range k.Result.Plates {
 		// shift points by offset
-		for p, _ := range k.Layers[layer].KeepPolys {
+		for p := range k.Layers[layer].KeepPolys {
 			k.Layers[layer].KeepPolys[p].Rel(*offset)
 		}
 		// update result sizes
