@@ -451,8 +451,7 @@ func (k *KAD) DrawOutputFiles() error {
 
 		// create other file formats
 		if in_strings("dxf", k.Result.Formats) || in_strings("eps", k.Result.Formats) {
-			abs_eps := fmt.Sprintf("%s.%s", strings.TrimSuffix(abs_svg, ".svg"), "eps")
-			err = exec.Command("inkscape", "-E", abs_eps, abs_svg).Run()
+			err = exec.Command("inkscape", "--export-type=eps", abs_svg).Run()
 			if err != nil {
 				log.Printf("ERROR: could not create EPS file for: %s, %s | %s", k.Hash, layer, err.Error())
 				continue // skip dxf because it depends on eps
@@ -460,6 +459,9 @@ func (k *KAD) DrawOutputFiles() error {
 			log.Println("created eps file")
 
 			if in_strings("dxf", k.Result.Formats) {
+				// inkscape's export-type option automatically creates file extension of "eps".
+				// pstoedit converts "eps" to "dxf".
+				abs_eps := fmt.Sprintf("%s.%s", strings.TrimSuffix(abs_svg, ".svg"), "eps")
 				abs_dxf := fmt.Sprintf("%s.%s", strings.TrimSuffix(abs_svg, ".svg"), "dxf")
 				cmd := exec.Command("pstoedit", "-dt", "-f", "dxf: -polyaslines -mm", abs_eps, abs_dxf)
 				var out bytes.Buffer
