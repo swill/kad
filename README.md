@@ -5,7 +5,7 @@ KAD - Keyboard Automated Design
 
 KAD is the SVG CAD engine which powers the mechanical keyboard CAD generation site [builder.swillkb.com](http://builder.swillkb.com/).  If you are going to use this library, you should probably review the documentation site for the published builder in order to understand what all the different features are.  The documentation site is available and kept up to date at [builder-docs.swillkb.com](http://builder-docs.swillkb.com/).
 
-KAD is a Golang library to aid in the design of mechanical keyboard plates and cases.  The keyboard layout uses the standard format developed by the [www.keyboard-layout-editor.com](http://www.keyboard-layout-editor.com/) project.  KAD is designed to produce SVG files which can be taken to a laser or water cutting fabrication shop to be cut.  KAD supports a huge number of features, including but not limited it; 4 switch types, 4 stabilizer types, 3 case types, rounded corners, padding, mount holes, usb cutouts, etc...
+KAD is a Golang library to aid in the design of mechanical keyboard plates and cases.  The keyboard layout uses the standard format developed by the [www.keyboard-layout-editor.com](http://www.keyboard-layout-editor.com/) project.  KAD is designed to produce SVG files which can be taken to a laser or water cutting fabrication shop to be cut.  KAD supports a huge number of features, including but not limited it; 4 switch types, 5 stabilizer types, 3 case types, rounded corners, padding, mount holes, usb cutouts, etc...
 
 
 ## Get Started
