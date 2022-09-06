@@ -26,7 +26,8 @@ const (
 type KAD struct {
 	Hash           string
 	UOM            string
-	U1             float64 `json:"key-unit"`
+	U1             float64   `json:"key-unit"`
+	CustomU1       *CustomU1 `json:"custom-key-unit"`
 	DMZ            float64
 	Width          float64
 	Height         float64
@@ -107,11 +108,18 @@ type UploadCtl struct {
 	Attempt   int
 }
 
+// U1Custom used for when U1 is rectangular
+type CustomU1 struct {
+	Height float64 `json:"height"`
+	Width  float64 `json:"width"`
+}
+
 func New() *KAD {
 	k := &KAD{
 		Hash:         "",
 		UOM:          "mm",
 		U1:           19.05,
+		CustomU1:     nil,
 		DMZ:          5,
 		Width:        0,
 		Height:       0,
@@ -155,6 +163,30 @@ func New() *KAD {
 		k.Result.Formats = append(k.Result.Formats, []string{"dxf", "eps"}...)
 	}
 	return k
+}
+
+// SetCustomU1 set Custom U1.
+func (k *KAD) SetCustomU1(height, width float64) {
+	k.CustomU1 = &CustomU1{Height: height, Width: width}
+	return
+}
+
+// U1Width return U1 width. Unless CustomU1 set, returns standard U1 value.
+func (k *KAD) U1Width() float64 {
+	if k.CustomU1 == nil {
+		return k.U1
+	} else {
+		return k.CustomU1.Width
+	}
+}
+
+// U1Height return U1 Height. Unless CustomU1 set, returns standard U1 value.
+func (k *KAD) U1Height() float64 {
+	if k.CustomU1 == nil {
+		return k.U1
+	} else {
+		return k.CustomU1.Height
+	}
 }
 
 // Draw the SVGs needed for this layout.
@@ -299,33 +331,33 @@ func (k *KAD) DrawLayout() {
 			}
 			switch {
 			case ri == 0 && ki == 0: // first key
-				p.X += key.Xrel*k.U1 + key.Width*k.U1/2
-				p.Y += key.Yrel*k.U1 + k.U1/2
+				p.X += key.Xrel*k.U1Width() + key.Width*k.U1Width()/2
+				p.Y += key.Yrel*k.U1Height() + k.U1Height()/2
 				if c.Xabs != 0 || c.Yabs != 0 { // handle absolute positioned keys
-					p.X += c.Xabs * k.U1
-					p.Y += c.Yabs * k.U1
+					p.X += c.Xabs * k.U1Width()
+					p.Y += c.Yabs * k.U1Height()
 				}
 			case ki == 0: // change rows
-				p.X = k.DMZ + k.LeftPad + k.Kerf + key.Xrel*k.U1 + key.Width*k.U1/2
+				p.X = k.DMZ + k.LeftPad + k.Kerf + key.Xrel*k.U1Width() + key.Width*k.U1Width()/2
 				switch {
 				case key.Xabs != 0 || key.Yabs != 0: // the first row in a cluster
-					p.X += c.Xabs * k.U1
-					p.Y = k.DMZ + k.TopPad + k.Kerf + c.Yabs*k.U1 + key.Yrel*k.U1 + k.U1/2
+					p.X += c.Xabs * k.U1Width()
+					p.Y = k.DMZ + k.TopPad + k.Kerf + c.Yabs*k.U1Height() + key.Yrel*k.U1Height() + k.U1/2
 				case c.Xabs != 0 || c.Yabs != 0: // a cluster row, but not the first cluster row
-					p.X += c.Xabs * k.U1
-					p.Y += key.Yrel*k.U1 + k.U1
+					p.X += c.Xabs * k.U1Width()
+					p.Y += key.Yrel*k.U1Height() + k.U1Height()
 				default: // all other keys
-					p.Y += key.Yrel*k.U1 + k.U1
+					p.Y += key.Yrel*k.U1Height() + k.U1Height()
 				}
 			default:
-				p.X += prev_width*k.U1/2 + key.Xrel*k.U1 + key.Width*k.U1/2
+				p.X += prev_width*k.U1Width()/2 + key.Xrel*k.U1Width() + key.Width*k.U1Width()/2
 			}
 			if prev_y_off != 0 {
 				p.Y += -prev_y_off
 				prev_y_off = 0.0
 			}
 			if key.Height > 1 {
-				prev_y_off = key.Height*k.U1/2 - k.U1/2
+				prev_y_off = key.Height*k.U1Height()/2 - k.U1Height()/2
 				p.Y += prev_y_off
 			}
 			var init bool
